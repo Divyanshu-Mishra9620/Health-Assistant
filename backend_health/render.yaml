@@ -3,13 +3,21 @@ services:
     name: django-health-backend
     env: python
     plan: free
-    buildCommand: pip install --no-cache-dir -r requirements.txt
-    startCommand: gunicorn backend_health.backend_health.wsgi:application
-
+    buildCommand: |
+      pip install --no-cache-dir -r requirements.txt && 
+      python manage.py collectstatic --noinput
+    startCommand: |
+      gunicorn backend_health.wsgi:application --workers 2
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: backend_health.settings
       - key: PYTHON_VERSION
-        value: 3.10
+        value: 3.9.7
+      - key: SECRET_KEY
+        generateValue: true
       - key: OPENAI_API_KEY
-    autoDeploy: true
+        fromGroup: openai
+      - key: DISABLE_COLLECTSTATIC
+        value: 0
+      - key: PYTHONPATH
+        value: /opt/render/project/src
