@@ -4,10 +4,9 @@ services:
     env: python
     plan: free
     buildCommand: |
-      pip install --no-cache-dir -r requirements.txt &&
-      python manage.py collectstatic --noinput
+      cd backend_health && pip install --no-cache-dir -r ../requirements.txt && python manage.py collectstatic --noinput
     startCommand: |
-      gunicorn backend_health.wsgi:application --workers=2 --timeout 60 --bind 0.0.0.0:$PORT
+      cd backend_health && gunicorn backend_health.wsgi:application --workers=2 --timeout 60 --bind 0.0.0.0:$PORT
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: backend_health.settings
@@ -17,7 +16,5 @@ services:
         generateValue: true
       - key: OPENAI_API_KEY
         fromGroup: openai
-      - key: DISABLE_COLLECTSTATIC
-        value: 0
       - key: PORT
         value: 10000
