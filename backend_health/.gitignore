@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migrations (optional)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.pyd
+
+# SQLite database (if using SQLite)
+db.sqlite3
+
+# Environment variables / secrets
+.env
+.env.*
+
+# VSCode or other IDEs
+.vscode/
+.idea/
+
+# Logs and local files
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.bak
+
+# Virtual environment
+venv/
+env/
+.djangoenv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Static/media (if not managed by version control)
+staticfiles/
+media/

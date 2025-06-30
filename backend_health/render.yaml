@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: django-health-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn backend_health.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend_health.settings
+      - key: PYTHON_VERSION
+        value: 3.10
+      - key: OPENAI_API_KEY
+    sync: false
