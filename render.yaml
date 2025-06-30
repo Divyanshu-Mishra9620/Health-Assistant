@@ -4,17 +4,12 @@ services:
     env: python
     plan: free
     buildCommand: |
-      pip install --no-cache-dir -r requirements.txt && python manage.py collectstatic --noinput
+      pip install --no-cache-dir -r requirements.txt
+      cd backend_health && python manage.py collectstatic --noinput
     startCommand: |
-      gunicorn backend_health.wsgi:application --workers=2 --timeout 60
+      cd backend_health && gunicorn backend_health.wsgi:application --workers 2
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: backend_health.settings
       - key: PYTHON_VERSION
         value: 3.9.7
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DISABLE_COLLECTSTATIC
-        value: 0
-      - key: OPENAI_API_KEY
-        fromGroup: openai
