@@ -11,4 +11,4 @@ services:
       - key: PYTHON_VERSION
         value: 3.10
       - key: OPENAI_API_KEY
-    sync: false
+    autoDeploy: true
