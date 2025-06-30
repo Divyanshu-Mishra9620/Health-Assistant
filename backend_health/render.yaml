@@ -4,7 +4,8 @@ services:
     env: python
     plan: free
     buildCommand: pip install --no-cache-dir -r requirements.txt
-    startCommand: gunicorn backend_health.wsgi:application
+    startCommand: gunicorn backend_health.backend_health.wsgi:application
+
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: backend_health.settings
