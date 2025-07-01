@@ -3,7 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
 from django.contrib.auth.password_validation import validate_password
 
 from .models import (
@@ -12,7 +13,7 @@ from .models import (
     UserSymptomLog,
     AIDiagnosisResponse,
     ChatLog,
-    Medication
+    Medication,
 )
 from .serializers import (
     SymptomSerializer,
@@ -24,20 +25,47 @@ from .serializers import (
 )
 from .utils.openai_helper import get_ai_diagnosis
 
+User = get_user_model()
 
 # ──────── Registration ────────
-
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
+    email = serializers.EmailField(required=False)
+
+    age = serializers.IntegerField(write_only=True)
+    gender = serializers.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')], write_only=True)
+    height_cm = serializers.FloatField(required=False, write_only=True)
+    weight_kg = serializers.FloatField(required=False, write_only=True)
+    blood_group = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    allergies = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     class Meta:
         model = User
-        fields = ['username', 'password']
+        fields = [
+            'username', 'password',
+            'age', 'gender', 'height_cm', 'weight_kg', 'blood_group', 'allergies', 'email'
+        ]
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
 
     def create(self, validated_data):
-        user = User(username=validated_data['username'])
+        profile_data = {
+            'age': validated_data.pop('age'),
+            'gender': validated_data.pop('gender'),
+            'height_cm': validated_data.pop('height_cm', None),
+            'weight_kg': validated_data.pop('weight_kg', None),
+            'blood_group': validated_data.pop('blood_group', ''),
+            'allergies': validated_data.pop('allergies', ''),
+        }
+        email = validated_data.pop("email")
+        user = User(email=email)
         user.set_password(validated_data['password'])
         user.save()
+        UserProfile.objects.create(user=user, **profile_data)
+
         return user
 
 class RegisterView(CreateAPIView):
