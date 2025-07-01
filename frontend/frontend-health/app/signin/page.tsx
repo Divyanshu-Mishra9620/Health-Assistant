@@ -57,14 +57,17 @@ export default function SignupForestTheme() {
       toast.success("Logged in successfully!");
       resetForm();
       router.push("/");
-    } catch (error: any) {
-      console.error("Signin error:", error);
-      const errorMessage =
-        error.response?.data?.non_field_errors?.[0] ||
-        error.response?.data?.detail ||
-        "Signin failed. Please try again.";
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.non_field_errors?.[0] ||
+          error.response?.data?.detail ||
+          "Signin failed. Please try again.";
 
-      toast.error(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     } finally {
       setIsSubmitting(false);
     }

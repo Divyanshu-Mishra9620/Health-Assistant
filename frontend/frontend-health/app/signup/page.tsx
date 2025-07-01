@@ -86,13 +86,16 @@ export default function SignupForestTheme() {
       toast.success("Account created successfully!");
       resetForm();
       router.push("/");
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Signup failed. Please try again.";
-      toast.error(errorMessage);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Signup failed. Please try again.";
+        toast.error(errorMessage);
+      } else {
+        toast.error("An unexpected error occurred.");
+      }
     } finally {
       setIsSubmitting(false);
     }
