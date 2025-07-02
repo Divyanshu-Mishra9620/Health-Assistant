@@ -1,6 +1,8 @@
 from rest_framework import viewsets, serializers
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
@@ -14,6 +16,7 @@ from .models import (
     AIDiagnosisResponse,
     ChatLog,
     Medication,
+    CustomUser
 )
 from .serializers import (
     SymptomSerializer,
@@ -30,7 +33,8 @@ User = get_user_model()
 # ──────── Registration ────────
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
-    email = serializers.EmailField(required=False)
+    full_name = serializers.CharField(write_only=True)
+    email = serializers.EmailField()
 
     age = serializers.IntegerField(write_only=True)
     gender = serializers.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')], write_only=True)
@@ -40,16 +44,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     allergies = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     class Meta:
-        model = User
+        model = CustomUser 
         fields = [
-            'username', 'password',
-            'age', 'gender', 'height_cm', 'weight_kg', 'blood_group', 'allergies', 'email'
+            'email', 'password', 'full_name',
+            'age', 'gender', 'height_cm', 'weight_kg',
+            'blood_group', 'allergies'
         ]
-
-    def validate_email(self, value):
-        if value and User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with this email already exists.")
-        return value
 
     def create(self, validated_data):
         profile_data = {
@@ -60,17 +60,40 @@ class RegisterSerializer(serializers.ModelSerializer):
             'blood_group': validated_data.pop('blood_group', ''),
             'allergies': validated_data.pop('allergies', ''),
         }
-        email = validated_data.pop("email")
-        user = User(email=email)
-        user.set_password(validated_data['password'])
-        user.save()
-        UserProfile.objects.create(user=user, **profile_data)
 
+        full_name = validated_data.pop("full_name")
+        email = validated_data["email"]
+        password = validated_data["password"]
+
+        user = CustomUser.objects.create_user(email=email, password=password, full_name=full_name)
+        UserProfile.objects.create(user=user, **profile_data)
         return user
 
-class RegisterView(CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            profile = UserProfile.objects.get(user=user)
+
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "age": profile.age,
+                    "gender": profile.gender,
+                    "height_cm": profile.height_cm,
+                    "weight_kg": profile.weight_kg,
+                    "blood_group": profile.blood_group,
+                    "allergies": profile.allergies,
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 # ──────── UserProfile ────────
@@ -149,8 +172,9 @@ class DiagnoseAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        symptom_ids = request.data.get('symptom_ids', [])
-        symptoms = Symptom.objects.filter(id__in=symptom_ids)
+        symptom_names = request.data.get('symptom_names', [])
+        symptoms = Symptom.objects.filter        (name__in=symptom_names)
+
         if not symptoms.exists():
             return Response({"error": "No valid symptoms provided."}, status=400)
 

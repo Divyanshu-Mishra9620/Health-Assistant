@@ -10,7 +10,7 @@ export default function SignupForestTheme() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   const [data, setData] = useState({
-    username: "",
+    full_name: "",
     email: "",
     password: "",
     age: "",
@@ -32,7 +32,7 @@ export default function SignupForestTheme() {
 
   const resetForm = () => {
     setData({
-      username: "",
+      full_name: "",
       email: "",
       password: "",
       age: "",
@@ -48,7 +48,7 @@ export default function SignupForestTheme() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!data.username) {
+    if (!data.full_name) {
       toast.error("Please enter your name");
       setIsSubmitting(false);
       return;
@@ -85,6 +85,9 @@ export default function SignupForestTheme() {
       console.log(res);
       toast.success("Account created successfully!");
       resetForm();
+      localStorage.setItem("access_token", res.data.access);
+      localStorage.setItem("refresh_token", res.data.refresh);
+
       router.push("/");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -124,7 +127,7 @@ export default function SignupForestTheme() {
         {[
           {
             label: "Name",
-            name: "username",
+            name: "full_name",
             type: "text",
             placeholder: "Enter your name",
           },

@@ -14,10 +14,10 @@ from .views import (
 
 router = DefaultRouter()
 router.register(r'symptoms', SymptomViewSet)
-router.register(r'profiles', UserProfileViewSet)
+router.register(r'profile', UserProfileViewSet)
 router.register(r'logs', UserSymptomLogViewSet)
 router.register(r'diagnoses', AIDiagnosisResponseViewSet)
-router.register(r'chatlogs', ChatLogViewSet)
+router.register(r'chatlog', ChatLogViewSet)
 router.register(r'medications', MedicationViewSet)
 
 urlpatterns = [
