@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     "corsheaders",
 ]
 
+from datetime import timedelta
+
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -106,14 +108,22 @@ REST_FRAMEWORK = {
     ),
 }
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=7),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+}
+
 from decouple import config
 
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='') 
+OPENAI_BASE_URL = "https://api.chatanywhere.tech/v1"
 
 OPENAI_CLIENT = None
 if OPENAI_API_KEY:
     import openai
-    OPENAI_CLIENT = openai.OpenAI(api_key=OPENAI_API_KEY)
+    OPENAI_CLIENT = openai.OpenAI(api_key=OPENAI_API_KEY, base_url=OPENAI_BASE_URL)
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

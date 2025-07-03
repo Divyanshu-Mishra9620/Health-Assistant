@@ -53,14 +53,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     age = models.PositiveIntegerField()
-    gender = models.CharField(max_length=10, choices=[('Male','Male'), ('Female','Female'), ('Other','Other')])
+    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
     height_cm = models.FloatField(null=True, blank=True)
     weight_kg = models.FloatField(null=True, blank=True)
     blood_group = models.CharField(max_length=5, blank=True)
     allergies = models.TextField(blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.full_name or self.user.email
 
 class Symptom(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -84,7 +84,7 @@ class UserSymptomLog(models.Model):
     noted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.symptom.name}"
+        return f"{self.user.full_name or self.user.email} - {self.symptom.name}"
 
 class AIDiagnosisResponse(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -94,7 +94,7 @@ class AIDiagnosisResponse(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Diagnosis for {self.user.username} on {self.created_at.date()}"
+        return f"Diagnosis for {self.user.full_name} on {self.created_at.date()}"
 
 class Medication(models.Model):
     name = models.CharField(max_length=100)
@@ -111,4 +111,4 @@ class ChatLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Chat with {self.user.username} at {self.timestamp}"
+        return f"Chat with {self.user.full_name or self.user.email} at {self.timestamp}"

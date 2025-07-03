@@ -3,9 +3,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
+# from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
+# from openai import APIError, RateLimitError, OpenAIError
 
 from django.contrib.auth.password_validation import validate_password
 
@@ -26,8 +27,6 @@ from .serializers import (
     ChatLogSerializer,
     MedicationSerializer
 )
-from .utils.openai_helper import get_ai_diagnosis
-
 User = get_user_model()
 
 # ──────── Registration ────────
@@ -168,25 +167,33 @@ class MedicationViewSet(viewsets.ModelViewSet):
 
 # ──────── Diagnose  ────────
 
+from django.http import StreamingHttpResponse
+from .utils.openai_helper import stream_ai_diagnosis 
 class DiagnoseAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         symptom_names = request.data.get('symptom_names', [])
-        symptoms = Symptom.objects.filter        (name__in=symptom_names)
+        cleaned_symptoms = [s.strip() for s in symptom_names if s.strip()]
 
-        if not symptoms.exists():
-            return Response({"error": "No valid symptoms provided."}, status=400)
+        symptoms = []
+        for name in cleaned_symptoms:
+            symptom, _ = Symptom.objects.get_or_create(name__iexact=name, defaults={"name": name})
+            symptoms.append(symptom)
 
-        ai_response = get_ai_diagnosis([s.name for s in symptoms])
-        diagnosis = AIDiagnosisResponse.objects.create(
-            user=request.user,
-            ai_notes=ai_response
+        def stream_response():
+            try:
+                stream = stream_ai_diagnosis([s.name for s in symptoms])
+                for chunk in stream:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta
+                    if hasattr(delta, "content") and delta.content:
+                        yield delta.content
+            except Exception as e:
+                yield f"\n[Error] {str(e)}"
+
+        return StreamingHttpResponse(
+            streaming_content=stream_response(),
+            content_type="text/plain"
         )
-        diagnosis.symptoms.set(symptoms)
-
-        return Response({
-            "message": "Diagnosis saved",
-            "symptoms": [s.name for s in symptoms],
-            "diagnosis": ai_response
-        }, status=201)

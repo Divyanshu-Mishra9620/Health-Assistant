@@ -1,18 +1,22 @@
-import openai
+from openai import OpenAI
 from django.conf import settings
 
-client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+client = OpenAI(
+    api_key=settings.OPENAI_API_KEY,
+    base_url=settings.OPENAI_BASE_URL
+)
 
-def get_ai_diagnosis(symptoms):
-    prompt = f"A user reports these symptoms: {', '.join(symptoms)}. Suggest likely conditions."
+def stream_ai_diagnosis(symptoms):
+    prompt = f"I’m experiencing: {', '.join(symptoms)}. What could be the possible reasons?"
 
-    response = client.chat.completions.create(
+    stream = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are a helpful medical assistant."},
+            {"role": "system", "content": "You are a friendly and helpful health assistant. Speak directly to the user and keep the tone supportive and informative."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=150,
-        temperature=0.7
+        temperature=0.7,
+        stream=True,
     )
-    return response.choices[0].message.content.strip()
+
+    return stream  
