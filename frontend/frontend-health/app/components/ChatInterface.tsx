@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -26,7 +27,7 @@ const ChatInterface: React.FC = () => {
     >
   >([
     {
-      text: "Hello! I'm your Health Assistant. How can I help you today?",
+      text: "Hello, I&apos;m your assistant. How can I help you today?",
       sender: "bot",
     },
   ]);
@@ -272,10 +273,13 @@ const ChatInterface: React.FC = () => {
           >
             {"image" in message ? (
               <div className="max-w-xs lg:max-w-md rounded-xl overflow-hidden shadow-sm">
-                <img
+                <Image
                   src={message.image}
                   alt="Uploaded medical"
+                  width={400}
+                  height={300}
                   className="w-full h-auto object-cover"
+                  unoptimized
                 />
               </div>
             ) : (
@@ -318,7 +322,7 @@ const ChatInterface: React.FC = () => {
             <div className="bg-blue-600 text-white p-4">
               <h2 className="text-lg font-semibold">Describe Your Symptoms</h2>
               <p className="text-sm opacity-90">
-                Add all symptoms you're experiencing
+                Add all symptoms you&apos;re experiencing
               </p>
             </div>
 
@@ -409,10 +413,13 @@ const ChatInterface: React.FC = () => {
 
             <div className="p-4">
               <div className="mb-4 rounded-lg overflow-hidden">
-                <img
+                <Image
                   src={selectedImage.preview}
                   alt="Preview"
+                  width={400}
+                  height={300}
                   className="w-full h-auto object-contain max-h-64"
+                  unoptimized
                 />
               </div>
 

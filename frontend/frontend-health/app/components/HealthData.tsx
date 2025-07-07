@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -67,11 +68,16 @@ export default function HealthData() {
           }`}
         >
           {message.image_url && (
-            <img
-              src={message.image_url}
-              alt="Chat attachment"
-              className="max-w-full h-auto rounded mb-2"
-            />
+            <div className="relative w-full max-w-md h-auto mb-2">
+              <Image
+                src={message.image_url}
+                alt="Chat attachment"
+                width={400}
+                height={300}
+                className="rounded"
+                unoptimized
+              />
+            </div>
           )}
           <p className="whitespace-pre-wrap">{message.message}</p>
           <small className="text-xs text-gray-500 block mt-1">
