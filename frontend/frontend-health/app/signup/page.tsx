@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
-export default function SignupForestTheme() {
+export default function SignupForm() {
   const router = useRouter();
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-  const [data, setData] = useState({
+
+  const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     password: "",
@@ -20,6 +21,7 @@ export default function SignupForestTheme() {
     blood_group: "",
     allergies: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
@@ -27,243 +29,207 @@ export default function SignupForestTheme() {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    setData({ ...data, [e.target.name]: e.target.value });
-  };
-
-  const resetForm = () => {
-    setData({
-      full_name: "",
-      email: "",
-      password: "",
-      age: "",
-      gender: "",
-      height_cm: "",
-      weight_kg: "",
-      blood_group: "",
-      allergies: "",
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!data.full_name) {
-      toast.error("Please enter your name");
-      setIsSubmitting(false);
-      return;
-    }
-    if (!data.email) {
-      toast.error("Please enter your email");
-      setIsSubmitting(false);
-      return;
-    }
-    if (!data.password) {
-      toast.error("Please create a password");
-      setIsSubmitting(false);
-      return;
-    }
-    if (!data.gender) {
-      toast.error("Please select your gender");
+    // Basic validation
+    if (
+      !formData.full_name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.gender
+    ) {
+      toast.error("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      const cleaned = {
-        ...data,
-        age: data.age ? Number(data.age) : null,
-        height_cm: data.height_cm ? parseFloat(data.height_cm) : null,
-        weight_kg: data.weight_kg ? parseFloat(data.weight_kg) : null,
+      const cleanedData = {
+        ...formData,
+        age: formData.age ? Number(formData.age) : null,
+        height_cm: formData.height_cm ? parseFloat(formData.height_cm) : null,
+        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
       };
 
-      const res = await axios.post(`${BACKEND_URL}/api/register/`, cleaned, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.log(res);
-      toast.success("Account created successfully!");
-      resetForm();
-      localStorage.setItem("access_token", res.data.access);
-      localStorage.setItem("refresh_token", res.data.refresh);
+      const response = await axios.post(
+        `${BACKEND_URL}/api/register/`,
+        cleanedData
+      );
 
+      toast.success("Account created successfully!");
+      localStorage.setItem("access_token", response.data.access);
+      localStorage.setItem("refresh_token", response.data.refresh);
       router.push("/");
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Signup failed. Please try again.";
-        toast.error(errorMessage);
-      } else {
-        toast.error("An unexpected error occurred.");
-      }
+    } catch (error) {
+      const errorMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message || "Signup failed. Please try again."
+        : "An unexpected error occurred.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const inputFields = [
+    { label: "Full Name", name: "full_name", type: "text", required: true },
+    { label: "Email", name: "email", type: "email", required: true },
+    { label: "Password", name: "password", type: "password", required: true },
+    { label: "Age", name: "age", type: "number", min: 0, max: 120 },
+    {
+      label: "Height (cm)",
+      name: "height_cm",
+      type: "number",
+      step: 0.1,
+      min: 0,
+    },
+    {
+      label: "Weight (kg)",
+      name: "weight_kg",
+      type: "number",
+      step: 0.1,
+      min: 0,
+    },
+    { label: "Blood Group", name: "blood_group", type: "text" },
+  ];
+
+  const genderOptions = [
+    { value: "", label: "-- Select Gender --" },
+    { value: "Male", label: "Male" },
+    { value: "Female", label: "Female" },
+    { value: "Other", label: "Other" },
+  ];
+
   return (
-    <div
-      className="flex flex-col justify-center items-center p-6 min-h-screen bg-gradient-to-b from-green-900 to-green-800"
-      style={{
-        backgroundImage: `url("https://www.transparenttextures.com/patterns/wood-pattern.png")`,
-      }}
-    >
-      <div className="text-3xl font-extrabold text-amber-400 mb-6 text-center drop-shadow-md">
-        🌿 Sign-up to Your Health-Assistant 🌲
-      </div>
-      <div className="text-xl font-semibold  text-black mb-6 text-center drop-shadow-md">
-        Already have an account?{" "}
-        <Link href={"/signin"} className="hover:text-teal-950 hover:underline">
-          Sign in
-        </Link>
-      </div>
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-green-800 bg-opacity-90 p-6 rounded-xl shadow-lg border border-amber-200"
-      >
-        {[
-          {
-            label: "Name",
-            name: "full_name",
-            type: "text",
-            placeholder: "Enter your name",
-          },
-          {
-            label: "Email",
-            name: "email",
-            type: "email",
-            placeholder: "Enter your email",
-          },
-          {
-            label: "Password",
-            name: "password",
-            type: "password",
-            placeholder: "Create a password",
-          },
-          {
-            label: "Age",
-            name: "age",
-            type: "number",
-            placeholder: "Enter your age",
-            min: "0",
-            max: "120",
-          },
-          {
-            label: "Height (cm)",
-            name: "height_cm",
-            type: "number",
-            placeholder: "Height in cm",
-            step: "0.1",
-            min: "0",
-          },
-          {
-            label: "Weight (kg)",
-            name: "weight_kg",
-            type: "number",
-            placeholder: "Weight in kg",
-            step: "0.1",
-            min: "0",
-          },
-          {
-            label: "Blood Group",
-            name: "blood_group",
-            type: "text",
-            placeholder: "e.g., A+",
-          },
-        ].map((input, index) => (
-          <div key={index} className="mb-4">
-            <label className="block text-amber-100 text-sm font-medium mb-1">
-              {input.label}
-            </label>
-            <input
-              type={input.type}
-              name={input.name}
-              value={data[input.name as keyof typeof data]}
-              step={input.step}
-              min={input.min}
-              max={input.max}
-              placeholder={input.placeholder}
-              onChange={handleChange}
-              className="bg-green-700 border border-amber-300 text-amber-50 text-sm rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 block w-full p-2.5 placeholder-amber-300"
-              disabled={isSubmitting}
-            />
-          </div>
-        ))}
-
-        <div className="mb-4">
-          <label className="block text-amber-100 text-sm font-medium mb-1">
-            Gender
-          </label>
-          <select
-            name="gender"
-            value={data.gender}
-            onChange={handleChange}
-            className="bg-green-700 border border-amber-300 text-amber-50 text-sm rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 block w-full p-2.5"
-            disabled={isSubmitting}
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Create your account
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          Already have an account?{" "}
+          <Link
+            href="/signin"
+            className="font-medium text-blue-600 hover:text-blue-500"
           >
-            <option value="">-- Select Gender --</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-            <option value="Prefer not to say">Prefer not to say</option>
-          </select>
-        </div>
+            Sign in
+          </Link>
+        </p>
+      </div>
 
-        <div className="mb-4">
-          <label className="block text-amber-100 text-sm font-medium mb-1">
-            Allergies
-          </label>
-          <textarea
-            name="allergies"
-            value={data.allergies}
-            placeholder="List any allergies you have (optional)"
-            onChange={handleChange}
-            className="bg-green-700 border border-amber-300 text-amber-50 text-sm rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 block w-full p-2.5 placeholder-amber-300 min-h-[100px]"
-            disabled={isSubmitting}
-          ></textarea>
-        </div>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {inputFields.map((field) => (
+              <div key={field.name}>
+                <label
+                  htmlFor={field.name}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  {field.label}
+                  {field.required && <span className="text-red-500">*</span>}
+                </label>
+                <div className="mt-1">
+                  <input
+                    id={field.name}
+                    name={field.name}
+                    type={field.type}
+                    value={formData[field.name as keyof typeof formData]}
+                    onChange={handleChange}
+                    required={field.required}
+                    min={field.min}
+                    max={field.max}
+                    step={field.step}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+            ))}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`w-full ${
-            isSubmitting ? "bg-amber-700" : "bg-amber-600 hover:bg-amber-700"
-          } text-white font-semibold rounded-lg px-4 py-3 mt-2 shadow-md transition duration-300 ease-in-out ${
-            !isSubmitting && "hover:scale-[1.01]"
-          } flex items-center justify-center gap-2`}
-        >
-          {isSubmitting ? (
-            <>
-              <svg
-                className="animate-spin h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+            <div>
+              <label
+                htmlFor="gender"
+                className="block text-sm font-medium text-gray-700"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Processing...
-            </>
-          ) : (
-            <>🌲 Create Account</>
-          )}
-        </button>
-      </form>
+                Gender <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              >
+                {genderOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="allergies"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Allergies
+              </label>
+              <textarea
+                id="allergies"
+                name="allergies"
+                rows={3}
+                value={formData.allergies}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="List any allergies you have (optional)"
+              />
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Creating account...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

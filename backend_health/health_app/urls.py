@@ -10,6 +10,8 @@ from .views import (
     ChatLogViewSet,
     MedicationViewSet,
     DiagnoseAPIView,
+    DiagnoseImageAPIView,
+    ChatHistoryView
 )
 
 router = DefaultRouter()
@@ -24,4 +26,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/register/', RegisterView.as_view(), name='register'),
     path('diagnose/', DiagnoseAPIView.as_view(), name='ai-diagnose'),
+    path('img-diagnose/', DiagnoseImageAPIView.as_view(), name='img-diagnose'),
+    path('chat/history/', ChatHistoryView.as_view(), name='chat-history'),
 ]

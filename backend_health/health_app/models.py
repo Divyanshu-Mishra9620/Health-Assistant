@@ -106,9 +106,16 @@ class Medication(models.Model):
 
 class ChatLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    prompt = models.TextField()
-    response = models.TextField()
+    message = models.TextField()
+    is_user = models.BooleanField(default=True)
+    image = models.ImageField(upload_to='chat_images/', null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    symptom_references = models.ManyToManyField(Symptom, blank=True, related_name='chat_logs')
+    diagnosis_references = models.ManyToManyField(AIDiagnosisResponse, blank=True, related_name='chat_logs_references')
+    diagnosis = models.ForeignKey(AIDiagnosisResponse, on_delete=models.SET_NULL, 
+                                null=True, blank=True, related_name='chat_logs_diagnosis')
+    related_message = models.ForeignKey('self', on_delete=models.SET_NULL, 
+                                    null=True, blank=True, related_name='related_messages')
 
-    def __str__(self):
-        return f"Chat with {self.user.full_name or self.user.email} at {self.timestamp}"
+    class Meta:
+        ordering = ['timestamp']

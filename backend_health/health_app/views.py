@@ -3,12 +3,15 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
-# from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import get_user_model
-# from openai import APIError, RateLimitError, OpenAIError
+from django.contrib.auth import get_user_model 
 
 from django.contrib.auth.password_validation import validate_password
+from django.http import StreamingHttpResponse
+from .utils.openai_helper import stream_ai_diagnosis, stream_ai_image_analysis
+import logging
+
+logger = logging.getLogger(__name__)
 
 from .models import (
     Symptom,
@@ -165,10 +168,7 @@ class MedicationViewSet(viewsets.ModelViewSet):
     serializer_class = MedicationSerializer
 
 
-# ──────── Diagnose  ────────
-
-from django.http import StreamingHttpResponse
-from .utils.openai_helper import stream_ai_diagnosis 
+# ──────── Diagnose  ──────── 
 class DiagnoseAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -181,7 +181,18 @@ class DiagnoseAPIView(APIView):
             symptom, _ = Symptom.objects.get_or_create(name__iexact=name, defaults={"name": name})
             symptoms.append(symptom)
 
+        user_message = ", ".join(cleaned_symptoms)
+
+        # ✅ Save user message first
+        user_log = ChatLog.objects.create(
+            user=request.user,
+            message=user_message,
+            is_user=True
+        )
+        user_log.symptom_references.set(symptoms)
+
         def stream_response():
+            bot_response = ""
             try:
                 stream = stream_ai_diagnosis([s.name for s in symptoms])
                 for chunk in stream:
@@ -189,11 +200,111 @@ class DiagnoseAPIView(APIView):
                         continue
                     delta = chunk.choices[0].delta
                     if hasattr(delta, "content") and delta.content:
+                        bot_response += delta.content
                         yield delta.content
-            except Exception as e:
-                yield f"\n[Error] {str(e)}"
 
-        return StreamingHttpResponse(
-            streaming_content=stream_response(),
-            content_type="text/plain"
-        )
+                # ✅ Save bot response with symptoms
+                bot_log = ChatLog.objects.create(
+                    user=request.user,
+                    message=bot_response,
+                    is_user=False
+                )
+                bot_log.symptom_references.set(symptoms)
+
+            except Exception as e:
+                error_msg = f"\n[Error] {str(e)}"
+                yield error_msg
+                ChatLog.objects.create(
+                    user=request.user,
+                    message=error_msg,
+                    is_user=False
+                )
+
+        return StreamingHttpResponse(stream_response(), content_type="text/plain")
+
+class DiagnoseImageAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            if 'image' not in request.FILES:
+                return Response({'error': 'No image provided'}, status=400)
+
+            image_file = request.FILES['image']
+            
+            user_chat_msg = ChatLog.objects.create(
+                user=request.user,
+                message="[Image Upload]",
+                is_user=True,
+                image=image_file
+            )
+
+            def generate():
+                bot_response = ""
+                try:
+                    stream = stream_ai_image_analysis(image_file)
+                    for chunk in stream:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            content = chunk.choices[0].delta.content
+                            bot_response += content
+                            yield content
+                    
+                    diagnosis = AIDiagnosisResponse.objects.create(
+                        user=request.user,
+                        ai_notes=bot_response
+                    )
+                    
+                    bot_chat_msg = ChatLog.objects.create(
+                        user=request.user,
+                        message=bot_response,
+                        is_user=False,
+                        diagnosis=diagnosis,
+                        related_message=user_chat_msg
+                    )
+                    
+                    user_chat_msg.diagnosis = diagnosis
+                    user_chat_msg.save()
+                    
+                except Exception as e:
+                    error_msg = f"\n[Error] {str(e)}"
+                    yield error_msg
+                    ChatLog.objects.create(
+                        user=request.user,
+                        message=error_msg,
+                        is_user=False
+                    )
+
+            return StreamingHttpResponse(generate(), content_type="text/plain")
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+class ChatHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        chats = ChatLog.objects.filter(user=request.user).order_by('timestamp')
+        serializer = ChatLogSerializer(chats, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+class HealthRecordView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        
+        profile = UserProfile.objects.get(user=request.user)
+        symptoms = UserSymptomLog.objects.filter(user=request.user)
+        diagnoses = AIDiagnosisResponse.objects.filter(user=request.user)
+        chats = ChatLog.objects.filter(user=request.user).order_by('-timestamp')[:20]  
+
+        profile_data = UserProfileSerializer(profile).data
+        symptoms_data = UserSymptomLogSerializer(symptoms, many=True).data
+        diagnoses_data = AIDiagnosisResponseSerializer(diagnoses, many=True).data
+        chat_data = ChatLogSerializer(chats, many=True, context={'request': request}).data
+        
+        return Response({
+            'profile': profile_data,
+            'symptoms': symptoms_data,
+            'diagnoses': diagnoses_data,
+            'chat_history': chat_data
+        })

@@ -1,70 +1,101 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface AppHeaderProps {
   toggleSidebar: () => void;
+  onRefresh?: () => Promise<void> | void;
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ toggleSidebar }) => {
-  return (
-    <header className="bg-white shadow-sm z-20">
-      <div className="px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={toggleSidebar}
-          className="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
+const AppHeader: React.FC<AppHeaderProps> = ({
+  toggleSidebar,
+  onRefresh = () => window.location.reload(),
+}) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-        <div className="flex-1 max-w-md mx-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search health topics..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  return (
+    <header className="sticky top-0 bg-white shadow-sm z-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <button
+              onClick={toggleSidebar}
+              className="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Toggle sidebar"
+            >
               <svg
-                className="h-5 w-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                  clipRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
+            </button>
+
+            <div className="ml-4 flex items-center">
+              <div className="bg-blue-600 text-white px-4 py-2 rounded-md shadow-sm">
+                <h1 className="text-xl font-bold tracking-tight">
+                  Health Assistant
+                </h1>
+                <p className="text-xs opacity-90">
+                  Your personal medical guide
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button className="p-2 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-        </button>
+          <div className="flex items-center">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+              aria-label="Refresh content"
+            >
+              {isRefreshing ? (
+                <svg
+                  className="w-6 h-6 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </header>
   );

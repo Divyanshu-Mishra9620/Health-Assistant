@@ -44,6 +44,7 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True 
 ROOT_URLCONF = "backend_health.urls"
 WSGI_APPLICATION = "backend_health.wsgi.application"
+CORS_ALLOW_CREDENTIALS = True
 
 # Database
 DATABASES = {
