@@ -27,7 +27,7 @@ const ChatInterface: React.FC = () => {
     >
   >([
     {
-      text: "Hello, I&apos;m your assistant. How can I help you today?",
+      text: "Hello, I'm your assistant. How can I help you today?",
       sender: "bot",
     },
   ]);
