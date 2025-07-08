@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import Cookies from "js-cookie";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -40,11 +41,17 @@ export default function SignInForm() {
         },
       });
 
-      console.log(response);
-
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+      Cookies.set("access_token", response.data.access, {
+        expires: 1,
+        path: "/",
+      });
+      Cookies.set("refresh_token", response.data.refresh, {
+        expires: 1,
+        path: "/",
+      });
 
       toast.success("Logged in successfully!");
       router.push("/");
@@ -136,15 +143,15 @@ export default function SignInForm() {
                   Remember me
                 </label>
               </div>
-
-              <div className="text-sm">
+              {/* ///////////////////////////////////////////////////////////////////////////////////////////////////////// */}
+              {/* <div className="text-sm">
                 <Link
                   href="/forgot-password"
                   className="font-medium text-blue-600 hover:text-blue-500"
                 >
                   Forgot your password?
                 </Link>
-              </div>
+              </div> */}
             </div>
 
             <div>

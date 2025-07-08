@@ -1,9 +1,8 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import ProfileSkeletonLoader from "./ProfileSkeletonLoader";
-
+import Cookies from "js-cookie";
 interface HealthSidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
@@ -53,8 +52,6 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const router = useRouter();
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -66,10 +63,12 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
     setLoading(false);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
-    router.push("/signin");
+    localStorage.removeItem("access_token");
+    Cookies.remove("access_token");
+    window.location.href = "/signin";
   };
 
   const handleToggle = () => {

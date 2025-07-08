@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import Cookies from "js-cookie";
 
 export default function SignupForm() {
   const router = useRouter();
@@ -66,6 +67,14 @@ export default function SignupForm() {
       toast.success("Account created successfully!");
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
+      Cookies.set("access_token", response.data.access, {
+        expires: 1,
+        path: "/",
+      });
+      Cookies.set("refresh_token", response.data.refresh, {
+        expires: 1,
+        path: "/",
+      });
       localStorage.setItem("user", JSON.stringify(response.data.user));
       router.push("/");
     } catch (error) {
@@ -104,7 +113,6 @@ export default function SignupForm() {
     { value: "", label: "-- Select Gender --" },
     { value: "Male", label: "Male" },
     { value: "Female", label: "Female" },
-    { value: "Other", label: "Other" },
   ];
 
   return (
