@@ -8,7 +8,7 @@ client = OpenAI(
 )
 
 def stream_ai_diagnosis(symptoms):
-    prompt = f"I’m experiencing: {', '.join(symptoms)}. What could be the possible reasons?"
+    prompt = f"I’m experiencing: {', '.join(symptoms)}. What could be the possible reasons also provide the medication as well as the precautions?"
 
     stream = client.chat.completions.create(
         model="gpt-3.5-turbo",

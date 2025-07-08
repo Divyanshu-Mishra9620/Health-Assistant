@@ -164,54 +164,47 @@ const ChatInterface: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("image", selectedImage.file);
-      console.log("FormData created", formData);  
       setMessages([
         ...messages,
         { image: selectedImage.preview, sender: "user" },
       ]);
 
-       const res = await fetch(`${BACKEND_URL}/img-diagnose/`, {
+      const res = await fetch(`${BACKEND_URL}/img-diagnose/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: formData,
       });
-      console.log("Response status:", res.status); 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        console.error("Error details:", errorData); 
-        throw new Error(errorData.message || "Failed to analyze image");
+
+      const responseText = await res.text();
+
+      if (responseText.trim().startsWith("[Error]")) {
+        throw new Error("IMAGE_ANALYSIS_NOT_SUPPORTED");
       }
 
-      const newBotMessage = { text: "", sender: "bot" as const };
+      const newBotMessage = { text: responseText, sender: "bot" as const };
       setMessages((prev) => [...prev, newBotMessage]);
+    } catch (error) {
+      console.error("Image analysis error:", error);
 
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder("utf-8");
+      let errorMessage =
+        "I couldn't analyze your image. Please try again later.";
 
-      let botText = "";
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          botText += chunk;
-
-          setMessages((prev) => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...updated[updated.length - 1],
-              text: botText,
-            };
-            return updated;
-          });
+      if (error instanceof Error) {
+        if (error.message === "IMAGE_ANALYSIS_NOT_SUPPORTED") {
+          errorMessage =
+            "Our current service doesn't support image analysis. Please describe your symptoms in text for assistance.";
         }
       }
-    } catch (error) {
-      console.error("Image upload error:", error);
-      toast.error("Failed to upload image");
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: errorMessage,
+          sender: "bot",
+        },
+      ]);
     } finally {
       setIsLoading(false);
       setSelectedImage(null);
@@ -260,7 +253,7 @@ const ChatInterface: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col relative bg-gray-50">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-white to-gray-50">
         {messages.map((message, index) => (
           <div
             key={index}
@@ -269,7 +262,7 @@ const ChatInterface: React.FC = () => {
             }`}
           >
             {"image" in message ? (
-              <div className="max-w-xs lg:max-w-md rounded-xl overflow-hidden shadow-sm">
+              <div className="max-w-xs lg:max-w-md rounded-xl overflow-hidden shadow-md border border-gray-200">
                 <Image
                   src={message.image}
                   alt="Uploaded medical"
@@ -281,10 +274,10 @@ const ChatInterface: React.FC = () => {
               </div>
             ) : (
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-3 rounded-xl ${
+                className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
                   message.sender === "user"
                     ? "bg-blue-600 text-white rounded-br-none"
-                    : "bg-white text-gray-800 rounded-bl-none shadow-sm"
+                    : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
                 }`}
               >
                 {message.text.split("\n").map((paragraph, i) => (
@@ -298,10 +291,10 @@ const ChatInterface: React.FC = () => {
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white text-gray-800 px-4 py-2 rounded-lg rounded-bl-none shadow-sm flex items-center space-x-2">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+            <div className="bg-white text-gray-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm flex items-center space-x-2 border border-gray-100">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200"></div>
             </div>
           </div>
         )}
@@ -315,17 +308,17 @@ const ChatInterface: React.FC = () => {
             onClick={handleAddSymptomClick}
           />
 
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md z-50 overflow-hidden">
-            <div className="bg-blue-600 text-white p-4">
-              <h2 className="text-lg font-semibold">Describe Your Symptoms</h2>
-              <p className="text-sm opacity-90">
-                Add all symptoms you&apos;re experiencing
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md z-50 overflow-hidden border border-gray-200">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
+              <h2 className="text-xl font-bold">Describe Your Symptoms</h2>
+              <p className="text-sm opacity-90 mt-1">
+                Add all symptoms you're experiencing
               </p>
             </div>
 
-            <div className="p-4">
+            <div className="p-5">
               <form onSubmit={handleSendMessage}>
-                <div className="space-y-3 mb-4">
+                <div className="space-y-3 mb-5">
                   {symptoms.map((symptom, index) => (
                     <div
                       key={symptom.id}
@@ -337,7 +330,7 @@ const ChatInterface: React.FC = () => {
                         onChange={(e) =>
                           handleSymptomChange(symptom.id, e.target.value)
                         }
-                        className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                        className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block w-full p-3"
                         placeholder={`Symptom ${index + 1}`}
                         autoFocus={index === symptoms.length - 1}
                       />
@@ -345,7 +338,7 @@ const ChatInterface: React.FC = () => {
                         <button
                           type="button"
                           onClick={addSymptomField}
-                          className="text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium rounded-lg text-sm p-2.5"
+                          className="text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm p-2.5 transition-colors"
                           aria-label="Add symptom field"
                         >
                           <FontAwesomeIcon icon={faPlus} />
@@ -354,7 +347,7 @@ const ChatInterface: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeSymptomField(symptom.id)}
-                          className="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 font-medium rounded-lg text-sm p-2.5"
+                          className="text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 font-medium rounded-lg text-sm p-2.5 transition-colors"
                           aria-label="Remove symptom field"
                         >
                           <FontAwesomeIcon icon={faXmark} />
@@ -363,17 +356,17 @@ const ChatInterface: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={handleAddSymptomClick}
-                    className="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5"
+                    className="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-3 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center space-x-2"
+                    className="flex-1 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-3 flex items-center justify-center space-x-2 transition-all shadow-md"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -398,18 +391,20 @@ const ChatInterface: React.FC = () => {
       {isImageModalOpen && selectedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black bg-opacity-30 backdrop-blur-sm"
+            className="absolute inset-0 backdrop-blur-sm bg-opacity-30 backdrop-blur-sm"
             onClick={() => setIsImageModalOpen(false)}
           />
 
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md z-50 overflow-hidden">
-            <div className="bg-blue-600 text-white p-4">
-              <h2 className="text-lg font-semibold">Image Preview</h2>
-              <p className="text-sm opacity-90">Review your medical image</p>
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md z-50 overflow-hidden border border-gray-200">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
+              <h2 className="text-xl font-bold">Image Preview</h2>
+              <p className="text-sm opacity-90 mt-1">
+                Review your medical image
+              </p>
             </div>
 
-            <div className="p-4">
-              <div className="mb-4 rounded-lg overflow-hidden">
+            <div className="p-5">
+              <div className="mb-5 rounded-lg overflow-hidden border border-gray-200">
                 <Image
                   src={selectedImage.preview}
                   alt="Preview"
@@ -420,11 +415,11 @@ const ChatInterface: React.FC = () => {
                 />
               </div>
 
-              <div className="flex space-x-2">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsImageModalOpen(false)}
-                  className="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center space-x-2"
+                  className="flex-1 text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-3 flex items-center justify-center space-x-2 transition-colors"
                 >
                   <FontAwesomeIcon icon={faXmark} />
                   <span>Cancel</span>
@@ -432,7 +427,7 @@ const ChatInterface: React.FC = () => {
                 <button
                   type="button"
                   onClick={removeSelectedImage}
-                  className="flex-1 text-white bg-red-500 hover:bg-red-600 focus:ring-2 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center space-x-2"
+                  className="flex-1 text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:ring-2 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-3 flex items-center justify-center space-x-2 transition-colors"
                 >
                   <FontAwesomeIcon icon={faTrash} />
                   <span>Remove</span>
@@ -440,7 +435,7 @@ const ChatInterface: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleImageSubmit}
-                  className="flex-1 text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center justify-center space-x-2"
+                  className="flex-1 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-3 flex items-center justify-center space-x-2 transition-all shadow-md"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -461,12 +456,12 @@ const ChatInterface: React.FC = () => {
         </div>
       )}
 
-      <div className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex space-x-2 mb-2">
+      <div className="p-4 border-t border-gray-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <div className="flex gap-3 mb-3">
           <button
             onClick={handleAddSymptomClick}
             type="button"
-            className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 flex items-center space-x-2"
+            className="text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:ring-2 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-3 flex items-center space-x-2 transition-all shadow-md flex-1"
           >
             <FontAwesomeIcon icon={faPlus} />
             <span>Add Symptoms</span>
@@ -482,7 +477,8 @@ const ChatInterface: React.FC = () => {
           <button
             onClick={triggerFileInput}
             disabled={isLoading}
-            className={`text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2.5 flex items-center space-x-2 ${
+            // disabled
+            className={`text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-3 flex items-center space-x-2 transition-all shadow-md flex-1 ${
               isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
@@ -490,7 +486,7 @@ const ChatInterface: React.FC = () => {
             <span>Upload Image</span>
           </button>
         </div>
-        <p className="text-xs text-gray-500 text-center">
+        <p className="text-xs text-gray-500 text-center px-2">
           Note: This assistant provides general information only, not medical
           advice. Always consult with a healthcare professional.
         </p>
