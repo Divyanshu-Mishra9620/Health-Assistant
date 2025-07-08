@@ -177,61 +177,66 @@ class MedicationViewSet(viewsets.ModelViewSet):
 
 # ──────── Diagnose  ──────── 
 from rest_framework.decorators import api_view, permission_classes
-from django.http import HttpResponse
-from .utils.openai_helper import stream_ai_diagnosis
+from django.http import StreamingHttpResponse
+import logging
 
-import asyncio
-
-async def stream_response_async(symptoms, user):
-    bot_response = ""
-    try:
-        stream = stream_ai_diagnosis([s.name for s in symptoms])
-
-        loop = asyncio.get_event_loop()
-        for chunk in await loop.run_in_executor(None, lambda: list(stream)):
-            if not chunk.choices:
-                continue
-            delta = chunk.choices[0].delta
-            if hasattr(delta, "content") and delta.content:
-                bot_response += delta.content
-                yield delta.content
-
-        bot_log = ChatLog.objects.create(
-            user=user,
-            message=bot_response,
-            is_user=False
-        )
-        bot_log.symptom_references.set(symptoms)
-
-    except Exception as e:
-        error_msg = f"\n[Error] {str(e)}"
-        yield error_msg
-        ChatLog.objects.create(
-            user=user,
-            message=error_msg,
-            is_user=False
-        )
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-async def diagnose_stream_view(request):
-    symptom_names = request.data.get('symptom_names', [])
-    cleaned_symptoms = [s.strip() for s in symptom_names if s.strip()]
+def diagnose_stream_view(request):
+    try:
+        symptom_names = request.data.get('symptom_names', [])
+        cleaned_symptoms = [s.strip() for s in symptom_names if s.strip()]
+        
+        symptoms = []
+        for name in cleaned_symptoms:
+            symptom, _ = Symptom.objects.get_or_create(name__iexact=name, defaults={"name": name})
+            symptoms.append(symptom)
 
-    symptoms = []
-    for name in cleaned_symptoms:
-        symptom, _ = Symptom.objects.get_or_create(name__iexact=name, defaults={"name": name})
-        symptoms.append(symptom)
+        user_message = ", ".join(cleaned_symptoms)
+        user_log = ChatLog.objects.create(
+            user=request.user,
+            message=user_message,
+            is_user=True
+        )
+        user_log.symptom_references.set(symptoms)
 
-    user_message = ", ".join(cleaned_symptoms)
-    user_log = ChatLog.objects.create(
-        user=request.user,
-        message=user_message,
-        is_user=True
-    )
-    user_log.symptom_references.set(symptoms)
+        def stream_response():
+            bot_response = ""
+            try:
+                stream = stream_ai_diagnosis([s.name for s in symptoms])
+                for chunk in stream:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta
+                    if hasattr(delta, "content") and delta.content:
+                        bot_response += delta.content
+                        yield delta.content
 
-    return HttpResponse(stream_response_async(symptoms, request.user), content_type="text/plain")
+                bot_log = ChatLog.objects.create(
+                    user=request.user,
+                    message=bot_response,
+                    is_user=False
+                )
+                bot_log.symptom_references.set(symptoms)
+
+            except Exception as e:
+                logger.exception("Error in streaming AI diagnosis")
+                error_msg = f"\n[Error] {str(e)}"
+                yield error_msg
+                ChatLog.objects.create(
+                    user=request.user,
+                    message=error_msg,
+                    is_user=False
+                )
+
+        return StreamingHttpResponse(stream_response(), content_type="text/plain")
+
+    except Exception as outer_error:
+        logger.exception("Outer error in diagnose_stream_view")
+        return Response({"error": str(outer_error)}, status=500)
+
 
 
 class DiagnoseImageAPIView(APIView):
