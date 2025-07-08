@@ -36,6 +36,7 @@ export default function SignInForm() {
       const response = await axios.post(`${BACKEND_URL}/api/token/`, formData, {
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
       });
 

@@ -2,7 +2,9 @@ from rest_framework import serializers
 from .models import Symptom, UserProfile, UserSymptomLog, AIDiagnosisResponse, ChatLog,Medication
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import CustomUser
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = CustomUser.EMAIL_FIELD
     def validate(self, attrs):
         data = super().validate(attrs)
 
