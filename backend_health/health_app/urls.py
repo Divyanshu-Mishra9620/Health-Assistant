@@ -9,10 +9,10 @@ from .views import (
     AIDiagnosisResponseViewSet,
     ChatLogViewSet,
     MedicationViewSet,
-    DiagnoseAPIView,
     DiagnoseImageAPIView,
     ChatHistoryView,
-    CustomTokenObtainPairView
+    CustomTokenObtainPairView,
+    diagnose_stream_view
 )
 
 router = DefaultRouter()
@@ -26,7 +26,7 @@ router.register(r'medications', MedicationViewSet)
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/register/', RegisterView.as_view(), name='register'),
-    path('diagnose/', DiagnoseAPIView.as_view(), name='ai-diagnose'),
+    path('diagnose/', diagnose_stream_view, name='ai-diagnose'),
     path('img-diagnose/', DiagnoseImageAPIView.as_view(), name='img-diagnose'),
     path('chat/history/', ChatHistoryView.as_view(), name='chat-history'),
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
