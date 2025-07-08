@@ -1,7 +1,7 @@
 """
 Django settings for backend_health project.
 """
-
+from corsheaders.defaults import default_headers
 from pathlib import Path
 import os
 from decouple import config
@@ -41,10 +41,17 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOWED_ORIGINS = [
+    "https://health-assistant-1khh.vercel.app",
+    "http://localhost:3000"
+]
 ROOT_URLCONF = "backend_health.urls"
 WSGI_APPLICATION = "backend_health.wsgi.application"
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Authorization',
+]
+
 
 import dj_database_url
 
