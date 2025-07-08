@@ -2,13 +2,23 @@ from rest_framework import serializers
 from .models import Symptom, UserProfile, UserSymptomLog, AIDiagnosisResponse, ChatLog,Medication
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import CustomUser
+from django.contrib.auth import authenticate
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = CustomUser.EMAIL_FIELD
     def validate(self, attrs):
+        credentials = {
+            'email': attrs.get('email'),
+            'password': attrs.get('password')
+        }
+
+        user = authenticate(**credentials)
+
+        if user is None or not user.is_active:
+            raise serializers.ValidationError("Invalid credentials")
+
         data = super().validate(attrs)
 
-        user = self.user
+        from health_app.models import UserProfile
         try:
             profile = UserProfile.objects.get(user=user)
             data['user'] = {
@@ -29,6 +39,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             }
 
         return data
+
 
 class SymptomSerializer(serializers.ModelSerializer):
     class Meta:
