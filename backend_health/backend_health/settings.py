@@ -46,12 +46,10 @@ ROOT_URLCONF = "backend_health.urls"
 WSGI_APPLICATION = "backend_health.wsgi.application"
 CORS_ALLOW_CREDENTIALS = True
 
-# Database
+import dj_database_url
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(default=config("DATABASE_URL"))
 }
 
 TEMPLATES = [
