@@ -11,7 +11,7 @@ def stream_ai_diagnosis(symptoms):
     prompt = f"I’m experiencing: {', '.join(symptoms)}. What could be the possible reasons?"
 
     stream = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a friendly and helpful health assistant. Speak directly to the user and keep the tone supportive and informative."},
             {"role": "user", "content": prompt}
