@@ -43,6 +43,7 @@ MIDDLEWARE = [
 ]
 CORS_ALLOWED_ORIGINS = [
     "https://health-assistant-1khh.vercel.app",
+    "https://health-assistant-omega.vercel.app/",
     "http://localhost:3000"
 ]
 ROOT_URLCONF = "backend_health.urls"
