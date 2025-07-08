@@ -26,7 +26,6 @@ export default function SignInForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Basic validation
     if (!formData.email || !formData.password) {
       toast.error("Please fill in all fields");
       setIsSubmitting(false);
@@ -40,8 +39,11 @@ export default function SignInForm() {
         },
       });
 
+      console.log(response);
+
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
       toast.success("Logged in successfully!");
       router.push("/");

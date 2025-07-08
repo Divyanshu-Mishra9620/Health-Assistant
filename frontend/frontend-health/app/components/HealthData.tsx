@@ -17,8 +17,7 @@ export default function HealthData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch chat history
-  useEffect(() => {
+   useEffect(() => {
     const fetchChatHistory = async () => {
       try {
         setLoading(true);

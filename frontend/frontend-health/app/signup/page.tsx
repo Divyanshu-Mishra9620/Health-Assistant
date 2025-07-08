@@ -37,7 +37,6 @@ export default function SignupForm() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Basic validation
     if (
       !formData.full_name ||
       !formData.email ||
@@ -62,9 +61,12 @@ export default function SignupForm() {
         cleanedData
       );
 
+      console.log(response);
+
       toast.success("Account created successfully!");
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       router.push("/");
     } catch (error) {
       const errorMessage = axios.isAxiosError(error)

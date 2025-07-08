@@ -9,6 +9,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.http import StreamingHttpResponse
 from .utils.openai_helper import stream_ai_diagnosis, stream_ai_image_analysis
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -100,6 +103,10 @@ class RegisterView(APIView):
 
 # ──────── UserProfile ────────
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
 class UserProfileViewSet(viewsets.ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
@@ -183,7 +190,6 @@ class DiagnoseAPIView(APIView):
 
         user_message = ", ".join(cleaned_symptoms)
 
-        # ✅ Save user message first
         user_log = ChatLog.objects.create(
             user=request.user,
             message=user_message,
@@ -203,7 +209,6 @@ class DiagnoseAPIView(APIView):
                         bot_response += delta.content
                         yield delta.content
 
-                # ✅ Save bot response with symptoms
                 bot_log = ChatLog.objects.create(
                     user=request.user,
                     message=bot_response,

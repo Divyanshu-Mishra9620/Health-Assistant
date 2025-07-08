@@ -27,7 +27,7 @@ const ChatInterface: React.FC = () => {
     >
   >([
     {
-      text: "Hello, I&apos;m your assistant. How can I help you today?",
+      text: "Hello, I'm your assistant. How can I help you today?",
       sender: "bot",
     },
   ]);
@@ -164,26 +164,23 @@ const ChatInterface: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("image", selectedImage.file);
-      console.log("FormData created", formData); // Debug log
-
-      // Add the image to messages
+      console.log("FormData created", formData);  
       setMessages([
         ...messages,
         { image: selectedImage.preview, sender: "user" },
       ]);
 
-      // Send to backend
-      const res = await fetch(`${BACKEND_URL}/img-diagnose/`, {
+       const res = await fetch(`${BACKEND_URL}/img-diagnose/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: formData,
       });
-      console.log("Response status:", res.status); // Debug log
+      console.log("Response status:", res.status); 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        console.error("Error details:", errorData); // Debug log
+        console.error("Error details:", errorData); 
         throw new Error(errorData.message || "Failed to analyze image");
       }
 

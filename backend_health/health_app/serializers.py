@@ -1,6 +1,33 @@
 from rest_framework import serializers
 from .models import Symptom, UserProfile, UserSymptomLog, AIDiagnosisResponse, ChatLog,Medication
 
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        user = self.user
+        try:
+            profile = UserProfile.objects.get(user=user)
+            data['user'] = {
+                'email': user.email,
+                'full_name': user.full_name,
+                'age': profile.age,
+                'gender': profile.gender,
+                'height_cm': profile.height_cm,
+                'weight_kg': profile.weight_kg,
+                'blood_group': profile.blood_group,
+                'allergies': profile.allergies,
+            }
+        except UserProfile.DoesNotExist:
+            data['user'] = {
+                'email': user.email,
+                'full_name': user.full_name,
+                'profile': None
+            }
+
+        return data
+
 class SymptomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Symptom

@@ -11,7 +11,8 @@ from .views import (
     MedicationViewSet,
     DiagnoseAPIView,
     DiagnoseImageAPIView,
-    ChatHistoryView
+    ChatHistoryView,
+    CustomTokenObtainPairView
 )
 
 router = DefaultRouter()
@@ -28,4 +29,6 @@ urlpatterns = [
     path('diagnose/', DiagnoseAPIView.as_view(), name='ai-diagnose'),
     path('img-diagnose/', DiagnoseImageAPIView.as_view(), name='img-diagnose'),
     path('chat/history/', ChatHistoryView.as_view(), name='chat-history'),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+
 ]
