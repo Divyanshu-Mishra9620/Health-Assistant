@@ -27,7 +27,7 @@ const ChatInterface: React.FC = () => {
     >
   >([
     {
-      text: "Hello, I'm your assistant. How can I help you today?",
+      text: "Hello, I&apos;m your assistant. How can I help you today?",
       sender: "bot",
     },
   ]);
@@ -187,7 +187,6 @@ const ChatInterface: React.FC = () => {
       setMessages((prev) => [...prev, newBotMessage]);
     } catch (error) {
       console.error("Image analysis error:", error);
-
       let errorMessage =
         "I couldn't analyze your image. Please try again later.";
 
@@ -312,7 +311,7 @@ const ChatInterface: React.FC = () => {
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
               <h2 className="text-xl font-bold">Describe Your Symptoms</h2>
               <p className="text-sm opacity-90 mt-1">
-                Add all symptoms you're experiencing
+                Add all symptoms you&apos;re experiencing
               </p>
             </div>
 
