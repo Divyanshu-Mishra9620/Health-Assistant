@@ -62,8 +62,6 @@ export default function SignupForm() {
         cleanedData
       );
 
-      console.log(response);
-
       toast.success("Account created successfully!");
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
@@ -76,7 +74,7 @@ export default function SignupForm() {
         path: "/",
       });
       localStorage.setItem("user", JSON.stringify(response.data.user));
-      router.push("/");
+      router.push("/signin");
     } catch (error) {
       const errorMessage = axios.isAxiosError(error)
         ? error.response?.data?.message || "Signup failed. Please try again."
