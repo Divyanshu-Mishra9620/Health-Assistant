@@ -6,14 +6,15 @@ import toast from "react-hot-toast";
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface UserProfile {
+  id?: number;
   email: string;
   full_name: string;
-  age: number;
-  gender: string;
-  height_cm: number;
-  weight_kg: number;
-  blood_group: string;
-  allergies: string;
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  blood_group?: string;
+  allergies?: string;
 }
 
 interface FullScreenProfileEditModalProps {
@@ -88,7 +89,7 @@ const FullScreenProfileEditModal: React.FC<FullScreenProfileEditModalProps> = ({
       newErrors.blood_group = "Blood group is required";
     }
 
-    if (!formData.allergies.trim()) {
+    if (!formData.allergies?.trim()) {
       newErrors.allergies =
         "Please enter any allergies or write 'None' if not applicable";
     }

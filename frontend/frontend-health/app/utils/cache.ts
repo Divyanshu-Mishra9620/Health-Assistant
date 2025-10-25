@@ -5,7 +5,7 @@ interface CacheEntry<T> {
 }
 
 class CacheManager {
-  private readonly cache: Map<string, CacheEntry<any>> = new Map();
+  private readonly cache: Map<string, CacheEntry<unknown>> = new Map();
   private readonly isBrowser = globalThis.window !== undefined;
 
   set<T>(key: string, data: T, expiresIn: number = 5 * 60 * 1000): void {

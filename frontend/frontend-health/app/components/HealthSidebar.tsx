@@ -18,14 +18,15 @@ interface HealthSidebarProps {
 }
 
 interface User {
+  id?: number;
   email: string;
   full_name: string;
-  age: number;
-  gender: string;
-  height_cm: number;
-  weight_kg: number;
-  blood_group: string;
-  allergies: string;
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  blood_group?: string;
+  allergies?: string;
 }
 
 const HealthSidebar: React.FC<HealthSidebarProps> = ({
@@ -292,7 +293,7 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
                   onLoadChatHistory?.(session);
                   setHistoryExpanded(false);
                 }}
-                onDeleteChat={(sessionId) => {}}
+                onDeleteChat={() => {}}
               />
             </div>
           )}

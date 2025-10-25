@@ -7,6 +7,7 @@ import {
   useEffect,
   ReactNode,
   useMemo,
+  useCallback,
 } from "react";
 
 type Theme = "light" | "dark";
@@ -353,17 +354,17 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("theme", theme);
   }, [theme, colors]);
 
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-  };
+  }, []);
 
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-  };
+  const toggleTheme = useCallback(() => {
+    setThemeState((current) => (current === "light" ? "dark" : "light"));
+  }, []);
 
   const value = useMemo(
     () => ({ theme, colors, setTheme, toggleTheme }),
-    [theme, colors]
+    [theme, colors, setTheme, toggleTheme]
   );
 
   return (

@@ -8,13 +8,25 @@ import FullScreenProfileEditModal from "./components/FullScreenProfileEditModal"
 import RequireAuth from "./components/RequiredAuth";
 import type { ChatSession } from "./utils/chatHistory";
 
+interface User {
+  id?: number;
+  email: string;
+  full_name: string;
+  age?: number;
+  gender?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  blood_group?: string;
+  allergies?: string;
+}
+
 export default function HealthApp() {
   const [activePage, setActivePage] = useState<"dashboard" | "healthData">(
     "dashboard"
   );
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
