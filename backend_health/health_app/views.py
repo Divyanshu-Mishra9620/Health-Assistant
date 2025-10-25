@@ -303,6 +303,17 @@ class ChatHistoryView(APIView):
         chats = ChatLog.objects.filter(user=request.user).order_by('timestamp')
         serializer = ChatLogSerializer(chats, many=True, context={'request': request})
         return Response(serializer.data)
+
+class ChatDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, chat_id):
+        try:
+            chat = ChatLog.objects.get(id=chat_id, user=request.user)
+            chat.delete()
+            return Response({'message': 'Chat deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except ChatLog.DoesNotExist:
+            return Response({'error': 'Chat not found'}, status=status.HTTP_404_NOT_FOUND)
     
 class HealthRecordView(APIView):
     permission_classes = [IsAuthenticated]
@@ -325,3 +336,55 @@ class HealthRecordView(APIView):
             'diagnoses': diagnoses_data,
             'chat_history': chat_data
         })
+
+
+class UserProfileUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def put(self, request):
+        try:
+
+            profile, created = UserProfile.objects.get_or_create(
+                user=request.user,
+                defaults={
+                    'age': request.data.get('age', 0),
+                    'gender': request.data.get('gender', 'Other'),
+                    'height_cm': request.data.get('height_cm', 0),
+                    'weight_kg': request.data.get('weight_kg', 0),
+                    'blood_group': request.data.get('blood_group', ''),
+                    'allergies': request.data.get('allergies', ''),
+                }
+            )
+            
+            if not created:
+                profile.age = request.data.get('age', profile.age)
+                profile.gender = request.data.get('gender', profile.gender)
+                profile.height_cm = request.data.get('height_cm', profile.height_cm)
+                profile.weight_kg = request.data.get('weight_kg', profile.weight_kg)
+                profile.blood_group = request.data.get('blood_group', profile.blood_group)
+                profile.allergies = request.data.get('allergies', profile.allergies)
+                profile.save()
+            
+            if 'full_name' in request.data:
+                request.user.full_name = request.data['full_name']
+                request.user.save()
+            
+            serializer = UserProfileSerializer(profile)
+            return Response({
+                'message': 'Profile updated successfully',
+                'profile': serializer.data,
+                'user': {
+                    'email': request.user.email,
+                    'full_name': request.user.full_name,
+                    'age': profile.age,
+                    'gender': profile.gender,
+                    'height_cm': profile.height_cm,
+                    'weight_kg': profile.weight_kg,
+                    'blood_group': profile.blood_group,
+                    'allergies': profile.allergies,
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error updating profile: {str(e)}")
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

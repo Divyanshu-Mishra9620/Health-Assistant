@@ -21,17 +21,34 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 bg-white shadow-sm z-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
+    <header
+      className="sticky top-0 backdrop-blur-lg shadow-sm z-20 border-b"
+      style={{
+        backgroundColor: "var(--surface)",
+        borderColor: "var(--border)",
+      }}
+    >
+      <div className="w-full px-3 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
             <button
               onClick={toggleSidebar}
-              className="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="lg:hidden p-2 rounded-lg focus:outline-none transition-all duration-200"
+              style={{
+                color: "var(--textSecondary)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "var(--success)";
+                e.currentTarget.style.backgroundColor = "var(--hover)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--textSecondary)";
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
               aria-label="Toggle sidebar"
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5 sm:w-6 sm:h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -45,54 +62,76 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               </svg>
             </button>
 
-            <div className="ml-4 flex items-center">
-              <div className="bg-blue-600 text-white px-4 py-2 rounded-md shadow-sm">
-                <h1 className="text-xl font-bold tracking-tight">
-                  Health Assistant
-                </h1>
-                <p className="text-xs opacity-90">
-                  Your personal medical guide
-                </p>
-              </div>
+            <div className="min-w-0 flex-1">
+              <h1
+                className="text-base sm:text-lg lg:text-xl font-bold truncate"
+                style={{
+                  color: "var(--success)",
+                }}
+              >
+                Health Assistant
+              </h1>
+              <p
+                className="hidden sm:block text-[10px] sm:text-xs font-medium truncate"
+                style={{ color: "var(--textMuted)" }}
+              >
+                AI-Powered Medical Guidance
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <div
+              className="hidden md:flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border"
+              style={{
+                backgroundColor: "var(--successLight)",
+                borderColor: "var(--success)",
+              }}
+            >
+              <div className="pulse-dot"></div>
+              <span
+                className="text-[10px] sm:text-xs font-semibold"
+                style={{ color: "var(--success)" }}
+              >
+                Online
+              </span>
+            </div>
+
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="p-2 rounded-full text-gray-500 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-              aria-label="Refresh content"
+              className="p-2 sm:p-2.5 rounded-lg focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                color: "var(--textSecondary)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isRefreshing) {
+                  e.currentTarget.style.color = "var(--success)";
+                  e.currentTarget.style.backgroundColor = "var(--hover)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--textSecondary)";
+                e.currentTarget.style.backgroundColor = "transparent";
+              }}
+              aria-label={isRefreshing ? "Refreshing..." : "Refresh content"}
+              title={isRefreshing ? "Refreshing..." : "Refresh"}
             >
-              {isRefreshing ? (
-                <svg
-                  className="w-6 h-6 animate-spin"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              )}
+              <svg
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                  isRefreshing ? "animate-spin" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
             </button>
           </div>
         </div>

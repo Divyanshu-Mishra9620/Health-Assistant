@@ -56,9 +56,27 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 
 import dj_database_url
 
-DATABASES = {
-    "default": dj_database_url.config(default=config("DATABASE_URL"))
-}
+database_url = config("DATABASE_URL", default=None)
+
+if database_url:
+    try:
+        DATABASES = {
+            "default": dj_database_url.config(default=database_url)
+        }
+    except Exception:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 TEMPLATES = [
     {
@@ -75,7 +93,6 @@ TEMPLATES = [
     },
 ]
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -105,10 +122,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
