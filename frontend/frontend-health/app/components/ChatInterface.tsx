@@ -6,9 +6,6 @@ import {
   faImage,
   faXmark,
   faPaperPlane,
-  faLightbulb,
-  faStethoscope,
-  faHeart,
   faPlus,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";

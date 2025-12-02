@@ -42,7 +42,7 @@ export default function HealthData() {
       }
     };
     fetchChatHistory();
-  }, []);
+  }, [messages.length]);
 
   if (loading) {
     return (

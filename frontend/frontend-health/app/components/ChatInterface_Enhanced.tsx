@@ -311,7 +311,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               className="text-lg mb-8"
               style={{ color: "var(--textSecondary)" }}
             >
-              Ask me anything about your health. I'm here to help with
+              Ask me anything about your health. I&apos;m here to help with
               personalized, evidence-based guidance.
             </p>
 
