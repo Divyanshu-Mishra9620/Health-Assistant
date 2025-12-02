@@ -116,6 +116,116 @@ class ChatLog(models.Model):
                                 null=True, blank=True, related_name='chat_logs_diagnosis')
     related_message = models.ForeignKey('self', on_delete=models.SET_NULL, 
                                     null=True, blank=True, related_name='related_messages')
+    session_id = models.CharField(max_length=100, blank=True, null=True, db_index=True)
 
     class Meta:
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),  # Optimize user history queries
+            models.Index(fields=['user', '-timestamp']), # Optimize descending order queries
+        ]
+
+
+class ConversationMemory(models.Model):
+    """Store conversation metadata for vector database tracking"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    session_id = models.CharField(max_length=100, db_index=True)
+    role = models.CharField(max_length=20, choices=[('user', 'User'), ('assistant', 'Assistant')])
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    chat_log = models.ForeignKey(ChatLog, on_delete=models.CASCADE, null=True, blank=True)
+    
+    vectorized = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['user', 'session_id']),
+            models.Index(fields=['user', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.role} - {self.timestamp}"
+
+
+class SecurityAuditLog(models.Model):
+    """
+    Security audit log for tracking sensitive operations
+    GDPR and HIPAA compliant
+    """
+    EVENT_TYPES = [
+        ('LOGIN', 'Login Attempt'),
+        ('LOGOUT', 'Logout'),
+        ('PASSWORD_CHANGE', 'Password Change'),
+        ('DATA_EXPORT', 'Data Export'),
+        ('DATA_DELETION', 'Data Deletion'),
+        ('PROFILE_UPDATE', 'Profile Update'),
+        ('ACCESS_DENIED', 'Access Denied'),
+        ('SUSPICIOUS_ACTIVITY', 'Suspicious Activity'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    username = models.CharField(max_length=255)
+    event_type = models.CharField(max_length=50, choices=EVENT_TYPES)
+    success = models.BooleanField(default=True)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['event_type', 'timestamp']),
+            models.Index(fields=['ip_address', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.event_type} - {self.username} - {self.timestamp}"
+
+
+class DataExportRequest(models.Model):
+    """
+    Track GDPR data export requests
+    """
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    export_format = models.CharField(max_length=10, choices=[('JSON', 'JSON'), ('PDF', 'PDF')])
+    file_path = models.FileField(upload_to='exports/', null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-requested_at']
+    
+    def __str__(self):
+        return f"Export for {self.user.email} - {self.status}"
+
+
+class UserActivityLog(models.Model):
+    """
+    Track user activity for analytics
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    activity_type = models.CharField(max_length=100)
+    activity_details = models.JSONField(default=dict, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    session_id = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['activity_type', 'timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.activity_type} - {self.timestamp}"

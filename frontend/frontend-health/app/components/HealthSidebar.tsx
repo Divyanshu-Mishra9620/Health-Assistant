@@ -2,9 +2,14 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import ProfileSkeletonLoader from "./ProfileSkeletonLoader";
 import Cookies from "js-cookie";
-import ChatHistoryList from "./ChatHistoryList";
 import { useTheme } from "@/app/context/ThemeContext";
-import type { ChatSession } from "@/app/utils/chatHistory";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMoon,
+  faSun,
+  faSignOutAlt,
+  faPen,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface HealthSidebarProps {
   isOpen: boolean;
@@ -12,7 +17,6 @@ interface HealthSidebarProps {
   handlePageClick: (page: "dashboard" | "healthData") => void;
   activePage: "dashboard" | "healthData";
   onNewChat?: () => void;
-  onLoadChatHistory?: (session: ChatSession) => void;
   onOpenProfileModal?: () => void;
   user?: User | null;
 }
@@ -35,7 +39,6 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
   handlePageClick,
   activePage,
   onNewChat,
-  onLoadChatHistory,
   onOpenProfileModal,
   user: userProp,
 }) => {
@@ -63,7 +66,6 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
   const [profileOpen, setProfileOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
-  const [historyExpanded, setHistoryExpanded] = useState<boolean>(false);
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -228,75 +230,6 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
               <span className="flex-shrink-0">{item.icon}</span>
             </button>
           ))}
-
-          {activePage === "dashboard" && (
-            <button
-              onClick={() => setHistoryExpanded(!historyExpanded)}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 group relative ${
-                historyExpanded ? "scale-110" : "hover:scale-110"
-              }`}
-              style={
-                historyExpanded
-                  ? {
-                      backgroundColor: "var(--primaryLight)",
-                      color: "var(--primary)",
-                      borderWidth: "2px",
-                      borderColor: "var(--primary)",
-                    }
-                  : {
-                      backgroundColor: "transparent",
-                      color: "var(--textSecondary)",
-                      borderWidth: "2px",
-                      borderColor: "transparent",
-                    }
-              }
-              onMouseEnter={(e) => {
-                if (!historyExpanded) {
-                  e.currentTarget.style.backgroundColor = "var(--hover)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!historyExpanded) {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                }
-              }}
-              title="Previous Chats"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </button>
-          )}
-
-          {activePage === "dashboard" && historyExpanded && (
-            <div
-              className="w-72 fixed left-20 top-40 rounded-xl shadow-2xl max-h-96 overflow-hidden z-40 animate-scale-in"
-              style={{
-                backgroundColor: "var(--surface)",
-                borderWidth: "1px",
-                borderColor: "var(--border)",
-              }}
-            >
-              <ChatHistoryList
-                isExpanded={true}
-                onSelectChat={(session) => {
-                  onLoadChatHistory?.(session);
-                  setHistoryExpanded(false);
-                }}
-                onDeleteChat={() => {}}
-              />
-            </div>
-          )}
 
           <button
             type="button"
@@ -553,19 +486,7 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
                     >
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
+                      <FontAwesomeIcon icon={faPen} className="h-5 w-5" />
                       <span>Edit Profile</span>
                     </button>
 
@@ -582,28 +503,12 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
                     >
                       {theme === "light" ? (
                         <>
-                          <svg
-                            className="h-5 w-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                          </svg>
+                          <FontAwesomeIcon icon={faMoon} className="h-5 w-5" />
                           <span>Dark Mode</span>
                         </>
                       ) : (
                         <>
-                          <svg
-                            className="h-5 w-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.536l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.828-2.828a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm.707-7.071a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zm-7.071-.707a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707zM3 11a1 1 0 100-2H2a1 1 0 100 2h1zm15-4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          <FontAwesomeIcon icon={faSun} className="h-5 w-5" />
                           <span>Light Mode</span>
                         </>
                       )}
@@ -621,20 +526,10 @@ const HealthSidebar: React.FC<HealthSidebarProps> = ({
                         e.currentTarget.style.backgroundColor = "transparent";
                       }}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
+                      <FontAwesomeIcon
+                        icon={faSignOutAlt}
                         className="h-5 w-5 transition-transform group-hover:translate-x-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
-                      </svg>
+                      />
                       <span>Sign Out</span>
                     </button>
                   </div>

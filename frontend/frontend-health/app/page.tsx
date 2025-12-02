@@ -2,11 +2,11 @@
 import { useEffect, useState } from "react";
 import HealthSidebar from "./components/HealthSidebar";
 import AppHeader from "./components/AppHeader";
-import ChatInterface from "./components/ChatInterface";
+import ChatInterface from "./components/ChatInterface_Enhanced";
 import HealthData from "./components/HealthData";
 import FullScreenProfileEditModal from "./components/FullScreenProfileEditModal";
 import RequireAuth from "./components/RequiredAuth";
-import type { ChatSession } from "./utils/chatHistory";
+import { useHealthRecordsPrefetch } from "./hooks/useHealthRecordsPrefetch";
 
 interface User {
   id?: number;
@@ -27,6 +27,9 @@ export default function HealthApp() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [profileModalOpen, setProfileModalOpen] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
+
+  // Prefetch health records in background when app loads
+  useHealthRecordsPrefetch();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -67,18 +70,6 @@ export default function HealthApp() {
     ]);
   };
 
-  const handleLoadChatHistory = (session: ChatSession): void => {
-    const loadedMessages = session.messages.map((msg) => ({
-      text: msg.message,
-      sender: msg.is_user ? ("user" as const) : ("bot" as const),
-    }));
-    setChatMessages(loadedMessages);
-    setActivePage("dashboard");
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(false);
-    }
-  };
-
   useEffect(() => {
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
@@ -101,7 +92,6 @@ export default function HealthApp() {
           activePage={activePage}
           handlePageClick={handlePageChange}
           onNewChat={handleNewChat}
-          onLoadChatHistory={handleLoadChatHistory}
           onOpenProfileModal={() => setProfileModalOpen(true)}
           user={user}
         />

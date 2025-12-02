@@ -1,43 +1,44 @@
 "use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-interface ChatMessage {
-  id: string;
-  image_url: string | null;
-  message: string;
-  timestamp: string;
-  is_user: boolean;
-}
+import {
+  getHealthRecordsWithBackgroundRefresh,
+  type ChatMessage,
+} from "@/app/utils/healthRecordsCache";
 
 export default function HealthData() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChatHistory = async () => {
       try {
-        setLoading(true);
-        const response = await fetch(`${BACKEND_URL}/chat/history/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-        });
+        // Get cached data immediately
+        const { cachedData, freshDataPromise } =
+          await getHealthRecordsWithBackgroundRefresh();
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // If we have cached data, show it immediately
+        if (cachedData && cachedData.length > 0) {
+          setMessages(cachedData);
+          setLoading(false);
+          setIsRefreshing(true); // Show subtle refresh indicator
         }
 
-        const data = await response.json();
-        setMessages(data);
+        // Wait for fresh data in background
+        const freshData = await freshDataPromise;
+        setMessages(freshData);
+        setIsRefreshing(false);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to load chat history:", error);
-        setError("Failed to load chat history. Please try again later.");
-      } finally {
+        // Only show error if we don't have cached data
+        if (messages.length === 0) {
+          setError("Failed to load chat history. Please try again later.");
+        }
         setLoading(false);
+        setIsRefreshing(false);
       }
     };
     fetchChatHistory();
@@ -149,16 +150,39 @@ export default function HealthData() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="mb-6">
-        <h2
-          className="text-2xl font-bold mb-2"
-          style={{ color: "var(--textPrimary)" }}
-        >
-          Medical History
-        </h2>
-        <p style={{ color: "var(--textSecondary)" }}>
-          Your past consultations and health records
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2
+            className="text-2xl font-bold mb-2"
+            style={{ color: "var(--textPrimary)" }}
+          >
+            Medical History
+          </h2>
+          <p style={{ color: "var(--textSecondary)" }}>
+            Your past consultations and health records
+          </p>
+        </div>
+        {isRefreshing && (
+          <div
+            className="flex items-center space-x-2 text-sm"
+            style={{ color: "var(--success)" }}
+          >
+            <svg
+              className="w-4 h-4 animate-spin"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span>Updating...</span>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4">

@@ -6,11 +6,9 @@ import {
   faImage,
   faXmark,
   faPaperPlane,
+  faSparkles,
   faLightbulb,
   faStethoscope,
-  faHeart,
-  faPlus,
-  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import toast from "react-hot-toast";

@@ -108,191 +108,191 @@ interface ThemeColors {
 
 const themeConfigs: Record<Theme, ThemeColors> = {
   dark: {
-    // Primary - Dark WhatsApp Green
-    primary: "#128C7E",
-    primaryHover: "#0d6b5e",
-    primaryActive: "#0a544a",
-    primaryLight: "#128C7E33",
+    // Primary - Softer Medical Green (reduced brightness for comfort)
+    primary: "#0ea970",
+    primaryHover: "#0d9763",
+    primaryActive: "#0a8055",
+    primaryLight: "#0ea97033",
 
-    // Secondary
-    secondary: "#128C7E",
-    secondaryHover: "#0d6b5e",
+    // Secondary - Harmonious teal
+    secondary: "#0ea970",
+    secondaryHover: "#0d9763",
 
-    // Accent
-    accent: "#128C7E",
-    accentHover: "#0d6b5e",
+    // Accent - Balanced green
+    accent: "#0ea970",
+    accentHover: "#0d9763",
 
-    // Backgrounds - True Dark (easier on eyes than pure black)
-    background: "#0F0F0F", // Main background (softer than #000)
-    backgroundSecondary: "#1A1A1A", // Cards, containers
-    backgroundTertiary: "#242424", // Elevated surfaces
+    // Backgrounds - Warmer dark (reduces blue light, easier on eyes)
+    background: "#121212", // Warm dark gray (better than pure black)
+    backgroundSecondary: "#1c1c1c", // Subtle elevation
+    backgroundTertiary: "#252525", // Card backgrounds
 
-    // Surfaces - Subtle elevation layers
-    surface: "#1E1E1E",
-    surfaceHover: "#262626",
-    surfaceActive: "#2E2E2E",
-    surfaceElevated: "#2A2A2A",
+    // Surfaces - Natural progression
+    surface: "#1e1e1e",
+    surfaceHover: "#272727",
+    surfaceActive: "#303030",
+    surfaceElevated: "#2a2a2a",
 
-    // Text - WCAG AAA compliant contrast ratios
-    textPrimary: "#EDEDED", // High contrast white (not harsh pure white)
-    textSecondary: "#B4B4B4", // Medium contrast gray
-    textTertiary: "#7A7A7A", // Low contrast gray
-    textMuted: "#5A5A5A", // Very subtle gray
-    textLink: "#25D366",
+    // Text - Softer whites (WCAG AAA compliant, reduced eye strain)
+    textPrimary: "#e8e8e8", // Soft white (not harsh)
+    textSecondary: "#b8b8b8", // Medium contrast
+    textTertiary: "#888888", // Lower contrast
+    textMuted: "#6a6a6a", // Subtle text
+    textLink: "#5cd3a8",
 
-    // Borders - Subtle but visible
-    border: "#2A2A2A",
-    borderHover: "#3A3A3A",
-    borderStrong: "#4A4A4A",
-    divider: "#252525",
+    // Borders - Visible but not harsh
+    border: "#2f2f2f",
+    borderHover: "#3f3f3f",
+    borderStrong: "#4f4f4f",
+    divider: "#282828",
 
-    // Status - Clear indicators
-    success: "#10B981", // Darker emerald green for better visibility
-    successLight: "#10B98133",
-    warning: "#F59E0B", // Warm amber
-    warningLight: "#F59E0B33",
-    error: "#EF4444", // Clear red
-    errorLight: "#EF444433",
-    info: "#00A884", // Teal
-    infoLight: "#00A88433",
+    // Status - Clear but not aggressive
+    success: "#0ea970", // Softer green
+    successLight: "#0ea97030",
+    warning: "#f5a524", // Warmer orange
+    warningLight: "#f5a52430",
+    error: "#e74c3c", // Softer red
+    errorLight: "#e74c3c30",
+    info: "#00a884", // Calm teal
+    infoLight: "#00a88430",
 
-    // Interactive - Smooth transitions
-    hover: "#262626",
-    active: "#2E2E2E",
-    focus: "#25D36650",
+    // Interactive - Smooth feedback
+    hover: "#272727",
+    active: "#303030",
+    focus: "#0ea97050",
 
-    // Chat - Modern messaging UI
-    chatBackground: "#0F0F0F",
-    chatBubbleOwn: "#10B981",
-    chatBubbleOther: "#1E1E1E",
-    chatBubbleOtherHover: "#262626",
-    chatInputBackground: "#1A1A1A",
-    chatInputBorder: "#2A2A2A",
+    // Chat - Comfortable messaging
+    chatBackground: "#121212",
+    chatBubbleOwn: "#0ea970",
+    chatBubbleOther: "#1e1e1e",
+    chatBubbleOtherHover: "#272727",
+    chatInputBackground: "#1c1c1c",
+    chatInputBorder: "#2f2f2f",
 
-    // Sidebar - Distinct but cohesive
-    sidebarBackground: "#141414",
-    sidebarHover: "#1E1E1E",
-    sidebarActive: "#262626",
-    sidebarDivider: "#1F1F1F",
+    // Sidebar - Subtle distinction
+    sidebarBackground: "#181818",
+    sidebarHover: "#222222",
+    sidebarActive: "#2a2a2a",
+    sidebarDivider: "#252525",
 
-    // Modal - Layered overlay
+    // Modal - Natural overlay
     overlay: "rgba(0, 0, 0, 0.85)",
-    modalBackground: "#1A1A1A",
-    modalBorder: "#2A2A2A",
+    modalBackground: "#1c1c1c",
+    modalBorder: "#2f2f2f",
 
-    // Orb - Green spectrum
-    orbHue: 145,
-    orbIntensity: 0.35,
-    gradientFrom: "#25D366",
-    gradientTo: "#10B981",
+    // Orb - Soft green glow
+    orbHue: 152,
+    orbIntensity: 0.28,
+    gradientFrom: "#0ea970",
+    gradientTo: "#048658",
 
-    // Skeleton - Subtle shimmer
-    skeletonBase: "#1A1A1A",
-    skeletonHighlight: "#242424",
+    // Skeleton - Gentle animation
+    skeletonBase: "#1c1c1c",
+    skeletonHighlight: "#252525",
 
-    // Mention - Highlighted but readable
-    mentionBackground: "#25D36622",
-    mentionText: "#7EE8A8",
+    // Mention - Readable highlight
+    mentionBackground: "#0ea97025",
+    mentionText: "#5cd3a8",
 
     // Status - Clear indicators
-    statusOnline: "#25D366",
-    statusIdle: "#F59E0B",
-    statusDnd: "#EF4444",
-    statusOffline: "#5A5A5A",
+    statusOnline: "#0ea970",
+    statusIdle: "#f5a524",
+    statusDnd: "#e74c3c",
+    statusOffline: "#6a6a6a",
   },
 
   light: {
-    // Primary - WhatsApp Green (Enhanced)
-    primary: "#25D366",
-    primaryHover: "#1DA851",
-    primaryActive: "#128C7E",
-    primaryLight: "#25D36615",
+    // Primary - Comfortable Medical Green (not too bright)
+    primary: "#0ea970",
+    primaryHover: "#0d9763",
+    primaryActive: "#0a8055",
+    primaryLight: "#0ea97018",
 
-    // Secondary - Complementary Teal
-    secondary: "#00A884",
-    secondaryHover: "#008F6F",
+    // Secondary - Harmonious teal
+    secondary: "#00a884",
+    secondaryHover: "#009573",
 
-    // Accent - Modern Emerald
-    accent: "#10B981",
-    accentHover: "#059669",
+    // Accent - Balanced emerald
+    accent: "#0ea970",
+    accentHover: "#0d9763",
 
-    // Backgrounds - Warm whites (easier on eyes)
-    background: "#FAFAFA", // Soft white background
-    backgroundSecondary: "#F5F5F5", // Slightly darker
-    backgroundTertiary: "#EEEEEE", // Cards and containers
+    // Backgrounds - Warmer whites (reduced blue light)
+    background: "#fafafa", // Soft off-white (easier than pure white)
+    backgroundSecondary: "#f5f5f5", // Subtle depth
+    backgroundTertiary: "#f0f0f0", // Card backgrounds
 
-    // Surfaces - Clean layers
-    surface: "#FFFFFF", // Pure white for cards
-    surfaceHover: "#F8F8F8",
-    surfaceActive: "#F0F0F0",
-    surfaceElevated: "#FCFCFC",
+    // Surfaces - Clean and soft
+    surface: "#ffffff", // Pure white for cards
+    surfaceHover: "#f9f9f9",
+    surfaceActive: "#f2f2f2",
+    surfaceElevated: "#fefefe",
 
-    // Text - Softer blacks for comfort
-    textPrimary: "#1A1A1A", // Near black (easier than pure black)
-    textSecondary: "#525252", // Medium gray
-    textTertiary: "#737373", // Light gray
-    textMuted: "#A3A3A3", // Very light gray
-    textLink: "#128C7E", // Green link color
+    // Text - Softer blacks (more comfortable than #000)
+    textPrimary: "#2d2d2d", // Warm dark gray (not harsh black)
+    textSecondary: "#5a5a5a", // Medium contrast
+    textTertiary: "#7a7a7a", // Light contrast
+    textMuted: "#9a9a9a", // Very subtle
+    textLink: "#0a8055", // Readable green
 
-    // Borders - Subtle definition
-    border: "#E5E5E5",
-    borderHover: "#D4D4D4",
-    borderStrong: "#A3A3A3",
-    divider: "#EEEEEE",
+    // Borders - Soft definition
+    border: "#e5e5e5",
+    borderHover: "#d0d0d0",
+    borderStrong: "#a0a0a0",
+    divider: "#efefef",
 
-    // Status - Clear and vibrant
-    success: "#10B981", // Darker emerald green for better contrast
-    successLight: "#10B98115",
-    warning: "#F59E0B",
-    warningLight: "#F59E0B15",
-    error: "#EF4444",
-    errorLight: "#EF444415",
-    info: "#00A884",
-    infoLight: "#00A88415",
+    // Status - Clear and balanced
+    success: "#0ea970", // Comfortable green
+    successLight: "#0ea97018",
+    warning: "#f5a524", // Warm orange
+    warningLight: "#f5a52418",
+    error: "#e74c3c", // Softer red
+    errorLight: "#e74c3c18",
+    info: "#00a884", // Calm teal
+    infoLight: "#00a88418",
 
     // Interactive - Gentle feedback
-    hover: "#F5F5F5",
-    active: "#EEEEEE",
-    focus: "#25D36635",
+    hover: "#f5f5f5",
+    active: "#f0f0f0",
+    focus: "#0ea97038",
 
-    // Chat - Light messaging UI
-    chatBackground: "#FFFFFF",
-    chatBubbleOwn: "#D1FAE5",
-    chatBubbleOther: "#F5F5F5",
-    chatBubbleOtherHover: "#EEEEEE",
-    chatInputBackground: "#FAFAFA",
-    chatInputBorder: "#E5E5E5",
+    // Chat - Comfortable messaging
+    chatBackground: "#ffffff",
+    chatBubbleOwn: "#d6f5e8",
+    chatBubbleOther: "#f5f5f5",
+    chatBubbleOtherHover: "#f0f0f0",
+    chatInputBackground: "#fafafa",
+    chatInputBorder: "#e5e5e5",
 
     // Sidebar - Subtle distinction
-    sidebarBackground: "#F7F7F7",
-    sidebarHover: "#F0F0F0",
-    sidebarActive: "#E8E8E8",
-    sidebarDivider: "#E5E5E5",
+    sidebarBackground: "#f7f7f7",
+    sidebarHover: "#f2f2f2",
+    sidebarActive: "#ececec",
+    sidebarDivider: "#e8e8e8",
 
     // Modal - Clean overlay
     overlay: "rgba(0, 0, 0, 0.45)",
-    modalBackground: "#FFFFFF",
-    modalBorder: "#E5E5E5",
+    modalBackground: "#ffffff",
+    modalBorder: "#e5e5e5",
 
     // Orb - Soft green
-    orbHue: 145,
-    orbIntensity: 0.18,
-    gradientFrom: "#25D366",
-    gradientTo: "#10B981",
+    orbHue: 152,
+    orbIntensity: 0.16,
+    gradientFrom: "#0ea970",
+    gradientTo: "#048658",
 
     // Skeleton - Gentle shimmer
-    skeletonBase: "#F0F0F0",
-    skeletonHighlight: "#F8F8F8",
+    skeletonBase: "#f2f2f2",
+    skeletonHighlight: "#f9f9f9",
 
     // Mention - Subtle highlight
-    mentionBackground: "#25D36612",
-    mentionText: "#128C7E",
+    mentionBackground: "#0ea97015",
+    mentionText: "#0a8055",
 
     // Status - Clear indicators
-    statusOnline: "#25D366",
-    statusIdle: "#F59E0B",
-    statusDnd: "#EF4444",
-    statusOffline: "#A3A3A3",
+    statusOnline: "#0ea970",
+    statusIdle: "#f5a524",
+    statusDnd: "#e74c3c",
+    statusOffline: "#9a9a9a",
   },
 };
 

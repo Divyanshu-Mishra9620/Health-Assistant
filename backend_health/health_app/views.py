@@ -8,11 +8,16 @@ from django.contrib.auth import get_user_model
 
 from django.contrib.auth.password_validation import validate_password
 from django.http import StreamingHttpResponse
-from .utils.openai_helper import stream_ai_diagnosis, stream_ai_image_analysis
+from .utils.gemini_helper import stream_ai_diagnosis, stream_ai_image_analysis
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 import logging
+import uuid
+from datetime import datetime
+
+# Import vector store for learning capabilities
+from .services.vector_store_service import get_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -202,10 +207,43 @@ def diagnose_stream_view(request):
         )
         user_log.symptom_references.set(symptoms)
 
+        # Initialize vector store for learning
+        try:
+            vector_store = get_vector_store()
+            session_id = str(uuid.uuid4())
+            
+            # Store user message in vector database
+            vector_store.add_conversation(
+                user_id=str(request.user.id),
+                session_id=session_id,
+                role="user",
+                content=user_message,
+                metadata={
+                    "timestamp": datetime.now().isoformat(),
+                    "symptom_count": len(symptoms),
+                    "chat_log_id": user_log.id
+                }
+            )
+            
+            # Retrieve relevant historical context
+            context = vector_store.get_conversation_context(
+                user_id=str(request.user.id),
+                current_message=user_message,
+                max_context_items=3
+            )
+            
+            logger.info(f"Retrieved context for user {request.user.id}: {len(context)} items")
+        except Exception as ve:
+            logger.warning(f"Vector store error (continuing without context): {ve}")
+            vector_store = None
+            session_id = None
+            context = ""
+
         def stream_response():
             bot_response = ""
             try:
-                stream = stream_ai_diagnosis([s.name for s in symptoms])
+                # Pass context to AI for enhanced responses
+                stream = stream_ai_diagnosis([s.name for s in symptoms], context=context)
                 for chunk in stream:
                     if not chunk.choices:
                         continue
@@ -220,6 +258,24 @@ def diagnose_stream_view(request):
                     is_user=False
                 )
                 bot_log.symptom_references.set(symptoms)
+
+                # Store bot response in vector database for future learning
+                if vector_store and session_id:
+                    try:
+                        vector_store.add_conversation(
+                            user_id=str(request.user.id),
+                            session_id=session_id,
+                            role="assistant",
+                            content=bot_response,
+                            metadata={
+                                "timestamp": datetime.now().isoformat(),
+                                "chat_log_id": bot_log.id,
+                                "symptom_count": len(symptoms)
+                            }
+                        )
+                        logger.info(f"Stored conversation in vector DB for user {request.user.id}")
+                    except Exception as ve:
+                        logger.warning(f"Failed to store bot response in vector DB: {ve}")
 
             except Exception as e:
                 logger.exception("Error in streaming AI diagnosis")
@@ -256,10 +312,44 @@ class DiagnoseImageAPIView(APIView):
                 image=image_file
             )
 
+            # Initialize vector store for learning
+            try:
+                vector_store = get_vector_store()
+                session_id = str(uuid.uuid4())
+                
+                # Store user image upload in vector database
+                vector_store.add_conversation(
+                    user_id=str(request.user.id),
+                    session_id=session_id,
+                    role="user",
+                    content="[Image Upload - Medical Image Analysis Request]",
+                    metadata={
+                        "timestamp": datetime.now().isoformat(),
+                        "content_type": "image",
+                        "chat_log_id": user_chat_msg.id,
+                        "image_name": image_file.name
+                    }
+                )
+                
+                # Retrieve relevant historical context (previous image analyses)
+                context = vector_store.get_conversation_context(
+                    user_id=str(request.user.id),
+                    current_message="medical image analysis",
+                    max_context_items=2
+                )
+                
+                logger.info(f"Retrieved image context for user {request.user.id}: {len(context)} items")
+            except Exception as ve:
+                logger.warning(f"Vector store error (continuing without context): {ve}")
+                vector_store = None
+                session_id = None
+                context = ""
+
             def generate():
                 bot_response = ""
                 try:
-                    stream = stream_ai_image_analysis(image_file)
+                    # Pass context to AI for enhanced image analysis
+                    stream = stream_ai_image_analysis(image_file, context=context)
                     for chunk in stream:
                         if chunk.choices and chunk.choices[0].delta.content:
                             content = chunk.choices[0].delta.content
@@ -282,6 +372,25 @@ class DiagnoseImageAPIView(APIView):
                     user_chat_msg.diagnosis = diagnosis
                     user_chat_msg.save()
                     
+                    # Store bot response in vector database for future learning
+                    if vector_store and session_id:
+                        try:
+                            vector_store.add_conversation(
+                                user_id=str(request.user.id),
+                                session_id=session_id,
+                                role="assistant",
+                                content=bot_response,
+                                metadata={
+                                    "timestamp": datetime.now().isoformat(),
+                                    "content_type": "image_analysis",
+                                    "chat_log_id": bot_chat_msg.id,
+                                    "diagnosis_id": diagnosis.id
+                                }
+                            )
+                            logger.info(f"Stored image analysis in vector DB for user {request.user.id}")
+                        except Exception as ve:
+                            logger.warning(f"Failed to store image analysis in vector DB: {ve}")
+                    
                 except Exception as e:
                     error_msg = f"\n[Error] {str(e)}"
                     yield error_msg
@@ -300,7 +409,20 @@ class ChatHistoryView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        chats = ChatLog.objects.filter(user=request.user).order_by('timestamp')
+        # Add pagination support and limit default to 100 most recent chats
+        # Use select_related to optimize database queries
+        limit = request.query_params.get('limit', 100)
+        try:
+            limit = int(limit)
+            if limit > 500:  # Cap at 500 to prevent abuse
+                limit = 500
+        except ValueError:
+            limit = 100
+            
+        chats = ChatLog.objects.filter(
+            user=request.user
+        ).select_related('user').order_by('timestamp')[:limit]
+        
         serializer = ChatLogSerializer(chats, many=True, context={'request': request})
         return Response(serializer.data)
 
